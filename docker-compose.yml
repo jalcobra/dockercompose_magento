@@ -1,0 +1,38 @@
+version: '2'
+
+services:
+  mariadb:
+    image: 'bitnami/mariadb:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - /path/to/mariadb-persistence:/bitnami
+  magento:
+    image: 'bitnami/magento:latest'
+    depends_on:
+      - mariadb
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - '/path/to/magento-persistence:/bitnami'
+Mount host directories as data volumes using the Docker command line
+In this case you need to specify the directories to mount on the run command. The process is the same than the one previously shown:
+
+Create a network (if it does not exist):
+
+$ docker network create magento-tier
+Create a MariaDB container with host volume:
+
+$ docker run -d --name mariadb -e ALLOW_EMPTY_PASSWORD=yes \
+ --net magento-tier \
+ --volume /path/to/mariadb-persistence:/bitnami \
+ bitnami/mariadb:latest
+Note: You need to give the container a name in order to Magento to resolve the host
+
+Create the Magento container with host volumes:
+
+$ docker run -d --name magento -p 80:80 -p 443:443 \
+ --net magento-tier \
+ --volume /path/to/magento-persistence:/bitnami \
+ bitnami/magento:latest
